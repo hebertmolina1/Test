@@ -1,0 +1,105 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebApplication3.Model;
+using Dapper;
+using System.Data;
+
+
+namespace WebApplication3.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TaskdatabasesController : ControllerBase
+    {
+        private readonly TaskContex _context;
+
+        public TaskdatabasesController(TaskContex context)
+        {
+            _context = context;
+        }
+        
+        
+        // GET: api/Taskdatabases/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<IEnumerable<Taskdatabase>>> GetTaskdatabase(int id)
+        {
+            switch (id)
+            {
+                case 1:
+                    return await _context.Taskdatabase.ToListAsync();
+                    
+                case 2:
+                    return await _context.Taskdatabase.FromSql("SELECT * FROM dbo.Taskdatabase where StatusIds = 'AVL'").ToListAsync();
+                    
+                case 3:
+                    return await _context.Taskdatabase.FromSql("SELECT * FROM dbo.Taskdatabase where StatusIds = 'Checkin'").ToListAsync();
+                    
+                case 4:
+                    return await _context.Taskdatabase.FromSql("SELECT * FROM dbo.Taskdatabase where StatusIds = 'Checkout'").ToListAsync();
+                    
+                default:
+                    return await _context.Taskdatabase.ToListAsync();                                
+            }
+
+        }
+        
+        
+        
+                // POST: api/Taskdatabases/
+        [HttpPost("{check}/{id}")]
+        public async Task<IActionResult> PostTaskdatabase(int check, int id, Taskdatabase taskdatabase)
+        {
+
+            var taskidmodify = _context.Taskdatabase.Find(id);
+            
+            
+            
+            switch (check)
+            {
+                case 1:
+                    taskidmodify.StatusIds = "Checkout";
+                    await _context.SaveChangesAsync();
+                    return Ok(taskidmodify);
+
+                case 2:
+                    taskidmodify.StatusIds = "Checkin";
+                    await _context.SaveChangesAsync();
+                    return Ok(taskidmodify);
+
+                default:
+                    taskidmodify.StatusIds = "ALV";
+                    await _context.SaveChangesAsync();
+                    return Ok(taskidmodify);
+
+
+
+            }
+            
+            
+        // DELETE: api/Taskdatabases/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Taskdatabase>> DeleteTaskdatabase(int id)
+        {
+            var taskdatabase = await _context.Taskdatabase.FindAsync(id);
+            if (taskdatabase == null)
+            {
+                return NotFound();
+            }
+
+            _context.Taskdatabase.Remove(taskdatabase);
+            await _context.SaveChangesAsync();
+
+            return taskdatabase;
+        }
+
+        private bool TaskdatabaseExists(int id)
+        {
+            return _context.Taskdatabase.Any(e => e.Id == id);
+        }
+    }
+}
